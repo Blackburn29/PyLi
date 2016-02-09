@@ -1,0 +1,50 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/DavidDurman/FlexiColorPicker/master/colorpicker.min.js"></script>
+    <style type="text/css">
+        #picker { width: 200px; height: 200px }
+        #slider { width: 30px; height: 200px }
+        body  { background: grey; }
+    </style>
+</head>
+<body>
+
+    <span id="values"></span>
+    <div id="picker"></div>
+    <div id="slider"></div>
+
+    <script type="text/javascript">
+
+    var cp = ColorPicker(
+
+        document.getElementById('slider'),
+        document.getElementById('picker'),
+
+        function(hex, hsv, rgb) {
+            jQuery.post(
+                    '/basic',
+                    { 'h': hsv.h, 's': hsv.s, 'v':  hsv.v }
+            );
+            jQuery('#values').html(JSON.stringify(hsv) + '<->' + JSON.stringify(rgb));
+        });
+cp.setHex('#000000');
+
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    };
+
+    </script>
+</body>
+</html>
