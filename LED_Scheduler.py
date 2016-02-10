@@ -52,7 +52,6 @@ class Worker(threading.Thread):
         self.kill_flag = True
 
     def run(self):
-        print "starting task"
         while self.is_alive():
             print self.message
             if self.message['task'] == 'SET':
@@ -63,7 +62,6 @@ class Worker(threading.Thread):
                 self.fade_led(self.led)
             else: # if the task was not handle or identified we should kill the worker
                 self.kill()
-        print "Worker died"
 
     def fade_led(self, led):
         increment = True
