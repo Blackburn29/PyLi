@@ -1,5 +1,7 @@
 from Adafruit_Driver import PWM
+import ledcolors
 
+MAX_RGB = 5 # The max  number of LED strips that can be plugged in
 SCALAR = 4096/255 #Used to scale the PWM from 0-255
 PWM_MAX = 4000 # Max pulse length out of 4096
 
@@ -19,25 +21,25 @@ class Driver:
         return True
 
 
-    def setRGB(self, r, g, b):
+    def setRGB(self, strip, r, g, b):
         if self.checkRGB(r, g, b) == False:
             raise Exception("{0}, {1}, {2} is an invalid RGB value".format(r,g,b))
 
-        self.pwm.setPWM(0, 0, r * SCALAR)
-        self.pwm.setPWM(1, 0, g * SCALAR)
-        self.pwm.setPWM(2, 0, b * SCALAR)
+        offset = strip * 3
 
-    def fade_step(self, increment, value):
+        self.pwm.setPWM(offset, 0, r * SCALAR)
+        self.pwm.setPWM(offset+1, 0, g * SCALAR)
+        self.pwm.setPWM(offset+2, 0, b * SCALAR)
+
+    def fade_step(self, increment, value, color):
         if increment == True:
-            value = value + 50
-            if value >= PWM_MAX:
+            value = value + 0.02 
+            if value >= 1.0:
                 increment = False
         else:
-            value = value - 50
+            value = value - 0.02
             if value <= 0:
                 increment = True
-        self.pwm.setPWM(0, 0, value)
-        self.pwm.setPWM(1, 0, value)
-        self.pwm.setPWM(2, 0, value)
-        print(increment, value)
+        r,g,b = ledcolors.hsv2rgb(color['h'], color['s'], value)
+        self.setRGB(0, r, g, b)
         return increment, value

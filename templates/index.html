@@ -11,6 +11,12 @@
 <body>
 
     <span id="values"></span>
+    <br/>
+    <input type="checkbox" class="fade" id="fade">Fade</input>
+    <br/>
+    <label for="speed">Speed(0.0 - 1.0)</label>
+    <input type="input" id="speed"></input>
+    <br/>
     <div id="picker"></div>
     <div id="slider"></div>
 
@@ -22,29 +28,21 @@
         document.getElementById('picker'),
 
         function(hex, hsv, rgb) {
+            var fade = jQuery('#fade').is(':checked');
+            var speed = jQuery('#speed').val() || 0.01;
+            var params = { 'h': hsv.h, 's': hsv.s, 'v':  hsv.v }
+
+            if (fade) {
+                params['speed'] = speed;
+            }
+
             jQuery.post(
-                    '/basic',
-                    { 'h': hsv.h, 's': hsv.s, 'v':  hsv.v }
+                    fade ? '/fade' : '/basic',
+                    params
             );
             jQuery('#values').html(JSON.stringify(hsv) + '<->' + JSON.stringify(rgb));
         });
-cp.setHex('#000000');
-
-    function debounce(func, wait, immediate) {
-        var timeout;
-        return function() {
-            var context = this, args = arguments;
-            var later = function() {
-                timeout = null;
-                if (!immediate) func.apply(context, args);
-            };
-            var callNow = immediate && !timeout;
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-            if (callNow) func.apply(context, args);
-        };
-    };
-
+        cp.setHex('#000000');
     </script>
 </body>
 </html>

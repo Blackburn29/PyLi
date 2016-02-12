@@ -55,20 +55,19 @@ class Worker(threading.Thread):
         while self.is_alive():
             print self.message
             if self.message['task'] == 'SET':
-                print "Set color"
-                self.led.setRGB(self.message['r'], self.message['g'], self.message['b'])
+                self.led.setRGB(0, self.message['r'], self.message['g'], self.message['b'])
                 self.kill()
             if self.message['task'] == 'FADE':
-                self.fade_led(self.led)
+                self.fade_led(self.led, self.message)
             else: # if the task was not handle or identified we should kill the worker
                 self.kill()
 
-    def fade_led(self, led):
+    def fade_led(self, led, message):
         increment = True
-        value = 0
+        value = 0.0
         while self.is_alive():
-            increment, value = led.fade_step(increment, value)
-            time.sleep(0.01)
+            increment, value = led.fade_step(increment, value, message)
+            time.sleep(message['speed'])
 
 
 
