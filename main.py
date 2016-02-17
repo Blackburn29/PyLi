@@ -1,54 +1,53 @@
-import ledcolors
 from flask import Flask, request, render_template
+import time
 from LED_Driver import Driver
 from LED_Scheduler import Scheduler
 
 app = Flask(__name__)
+NUM_LEDS = 2
 
 @app.route('/')
-def hello_world():
+def basic_page():
     return render_template('index.html')
 
 DRIVER = Driver()
-QUEUE = Scheduler(DRIVER)
+QUEUE = Scheduler(DRIVER, NUM_LEDS)
 
-@app.route('/basic', methods=['POST'])
+@app.route('/set/_basic', methods=['POST'])
 def basic():
     values = getRGB()
     values['task'] = 'SET'
     QUEUE.schedule(values)
     return 'OK'
 
-@app.route('/fade', methods=['POST'])
+@app.route('/fade/_basic', methods=['POST'])
 def fade():
-    values = getHSV()
+    values = getRGB()
     values['task'] = 'FADE'
-    values['speed'] = float(request.form['speed'])
+    values['speed'] = float(request.get_json()['speed'])
     QUEUE.schedule(values)
     return 'OK'
 
 def getRGB():
-    h = request.form['h']
-    s = request.form['s']
-    v = request.form['v']
-    rgb = ledcolors.hsv2rgb(h, s, v)
-    print rgb
+    data = request.get_json()
+    h = data['h']
+    s = data['s']
+    v = data['v']
+    light = data['light']
     return {
-            'r': rgb[0],
-            'g': rgb[1],
-            'b': rgb[2],
-    }
-    
-def getHSV():
-    h = request.form['h']
-    s = request.form['s']
-    v = request.form['v']
-    return {
+            'light': int(light),
             'h': h,
             's': s,
             'v': v,
     }
-
+    
 if __name__ == '__main__':
     app.debug = True
     app.run(host='192.168.1.16')
+    for i in range(NUM_LEDS):
+        DRIVER.setRGB(i, 255, 255, 255)
+        time.sleep(0.01)
+    for i in range(NUM_LEDS):
+        DRIVER.setRGB(i, 0, 0, 0)
+        time.sleep(0.01)
+

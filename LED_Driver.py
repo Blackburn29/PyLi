@@ -9,7 +9,7 @@ class Driver:
 
     def __init__(self):
         self.pwm = PWM()
-        self.pwm.setPWMFreq(120)
+        self.pwm.setPWMFreq(1000)
 
     def checkRGB(self, r, g, b):
         if r < 0 or r > 255:
@@ -31,15 +31,15 @@ class Driver:
         self.pwm.setPWM(offset+1, 0, g * SCALAR)
         self.pwm.setPWM(offset+2, 0, b * SCALAR)
 
-    def fade_step(self, increment, value, color):
+    def fade_step(self, light, increment, value, color):
         if increment == True:
-            value = value + 0.02 
+            value = value + 0.01
             if value >= 1.0:
                 increment = False
         else:
-            value = value - 0.02
+            value = value - 0.01
             if value <= 0:
                 increment = True
         r,g,b = ledcolors.hsv2rgb(color['h'], color['s'], value)
-        self.setRGB(0, r, g, b)
+        self.setRGB(light, r, g, b)
         return increment, value

@@ -1,40 +1,59 @@
 import threading
 import time
 import Queue
+import ledcolors
 
 from LED_Driver import Driver
 
 
 class Scheduler:
-    def __init__(self, led):
+    def __init__(self, led, n):
         self.q = Queue.Queue()
         self.led = led
-        self.consumer = Consumer(self.q, self.led)
-        print "Waiting for jobs"
+        self.num_leds = n
+        self.consumer = Consumer(self.q, self.led, self.num_leds)
 
     def schedule(self,  job):
         self.q.put(job);
 
 
 class Consumer(threading.Thread):
-    def __init__(self, queue, led):
+    def __init__(self, queue, led, num_leds):
         threading.Thread.__init__(self)
         self.q = queue
         self.led = led
-        #self.worker = threading.Thread(target=self.doWork, args=(queue, led,))
+        self.num_leds = num_leds
+        self.workers = []
+
+        for i in range(self.num_leds):
+            self.workers.append(Worker({'task': None}, self.led))
+            print 'Worker for strip {} started'.format(i + 1)
+
         self.setDaemon(True)
         self.start()
+
+    def get_worker(self, n):
+        if n - 1 > self.num_leds:
+            raise ValueError('{} is out of range'.format(n))
+
+        return self.workers[n-1]
+
+    def set_worker(self, n, worker):
+        if n - 1 > self.num_leds:
+            raise ValueError('{} is out of range'.format(n))
+
+        self.workers[n-1] = worker
 
     def run(self):
         while True:
             values = self.q.get()
+            light = int(values['light'])
             try:
-                if self.worker.is_alive():
-                    self.worker.kill()
+                if self.get_worker(light).is_alive():
+                    self.get_worker(light).kill()
             except AttributeError:
                 pass
-            self.worker = Worker(values, self.led)
-
+            self.set_worker(light, Worker(values, self.led))
             self.q.task_done()
 
 class Worker(threading.Thread):
@@ -53,20 +72,22 @@ class Worker(threading.Thread):
 
     def run(self):
         while self.is_alive():
-            print self.message
             if self.message['task'] == 'SET':
-                self.led.setRGB(0, self.message['r'], self.message['g'], self.message['b'])
+                r,g,b = ledcolors.hsv2rgb(self.message['h'], self.message['s'], self.message['v'])
+                print  r,g,b
+                self.led.setRGB(self.message['light'], r, g, b)
+                print 'SET LED on {}'.format(self.message['light'])
                 self.kill()
             if self.message['task'] == 'FADE':
-                self.fade_led(self.led, self.message)
+                self.fade_led(self.message['light'], self.led, self.message)
             else: # if the task was not handle or identified we should kill the worker
                 self.kill()
 
-    def fade_led(self, led, message):
+    def fade_led(self, light, led, message):
         increment = True
         value = 0.0
         while self.is_alive():
-            increment, value = led.fade_step(increment, value, message)
+            increment, value = led.fade_step(light, increment, value, message)
             time.sleep(message['speed'])
 
 
