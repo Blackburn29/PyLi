@@ -24,7 +24,51 @@ def basic():
 def fade():
     values = getRGB()
     values['task'] = 'FADE'
-    values['speed'] = float(request.get_json()['speed'])
+    if 'speed' in request.get_json():
+        values['speed'] = float(request.get_json()['speed'])
+    else:
+        values['speed'] = 0.1;
+    QUEUE.schedule(values)
+    return 'OK'
+
+@app.route('/fade/_all', methods=['POST'])
+def fade_all():
+    values = {}
+    values['task'] = 'FADE_ALL'
+    if 'speed' in request.get_json():
+        values['speed'] = float(request.get_json()['speed'])
+    else:
+        values['speed'] = 0.1;
+    if 'speed' in request.get_json():
+        values['light'] = float(request.get_json()['light'])
+    else:
+        return 'Missing light parameter'
+    QUEUE.schedule(values)
+    return 'OK'
+
+@app.route('/blink/_basic', methods=['POST'])
+def blink():
+    values = getRGB()
+    values['task'] = 'BLINK'
+    if 'speed' in request.get_json():
+        values['speed'] = float(request.get_json()['speed'])
+    else:
+        values['speed'] = 0.1;
+    QUEUE.schedule(values)
+    return 'OK'
+
+@app.route('/blink/_all', methods=['POST'])
+def blink_all():
+    values = {}
+    values['task'] = 'BLINK_ALL'
+    if 'speed' in request.get_json():
+        values['speed'] = float(request.get_json()['speed'])
+    else:
+        values['speed'] = 0.1;
+    if 'speed' in request.get_json():
+        values['light'] = float(request.get_json()['light'])
+    else:
+        return 'Missing light parameter'
     QUEUE.schedule(values)
     return 'OK'
 
@@ -43,11 +87,4 @@ def getRGB():
     
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='192.168.1.16')
-    for i in range(NUM_LEDS):
-        DRIVER.setRGB(i, 255, 255, 255)
-        time.sleep(0.01)
-    for i in range(NUM_LEDS):
-        DRIVER.setRGB(i, 0, 0, 0)
-        time.sleep(0.01)
-
+    app.run(host='0.0.0.0')

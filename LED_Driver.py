@@ -43,3 +43,23 @@ class Driver:
         r,g,b = ledcolors.hsv2rgb(color['h'], color['s'], value)
         self.setRGB(light, r, g, b)
         return increment, value
+
+    def fade_all_colors_step(self, light, value, color):
+        value = value + 1;
+        r,g,b = ledcolors.hsv2rgb(value % 360, 1.0, 1.0)
+        self.setRGB(light, r, g, b)
+        return value + 1
+
+    def blink_led(self, light, on, color):
+        if on:
+            value = 0.0
+        else:
+            value = 1.0
+        r,g,b = ledcolors.hsv2rgb(color['h'], color['s'], value)
+        self.setRGB(light, r, g, b)
+        return not on
+
+    def blink_all_colors(self, light, on, color):
+        r,g,b = ledcolors.hsv2rgb(color, 1.0, 1.0)
+        self.setRGB(light, r, g, b)
+        return not on, ((color + 50) % 360)
